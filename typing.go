@@ -6,26 +6,26 @@ import (
 )
 
 type TypeModel struct {
-	cursor    int
+	cursor    int //TODO: maybe use the textinput bubble instead of dealing with a cursor like this...
 	phrase    string
 	userInput string
 }
 
 var (
-	background  = lipgloss.Color("#16001E") //black/purple
-	phraseColor = lipgloss.Color("#F7B2B7") //light pink
-	inputColor  = lipgloss.Color("#DE639A") // china pink / pink-purple
+	background         = lipgloss.Color("#16001E")
+	phraseColor        = lipgloss.Color("#F7B2B7")
+	errColor           = lipgloss.Color("#7F2982")
+	errBackgroundColor = lipgloss.Color("#000000")
+	inputColor         = lipgloss.Color("#DE639A")
 
-	//cursorColor = lipgloss.Color("#000000") // white
-	//errColor    = lipgloss.Color("#7F2982") // ultra red / pink-red
+	containerStyle = lipgloss.NewStyle().
+			Bold(true).
+			PaddingTop(1).
+			PaddingLeft(2)
 
-	style = lipgloss.NewStyle().
-		Bold(true).
-		Foreground(phraseColor).
-		Background(background).
-		PaddingTop(1).
-		PaddingLeft(2).
-		Width(22)
+	inputStyle  = lipgloss.NewStyle().Background(background).Foreground(inputColor).Render // a direct reference to the function, not an invocation?
+	phraseStyle = lipgloss.NewStyle().Background(background).Foreground(phraseColor).Render
+	errorStyle  = lipgloss.NewStyle().Background(errBackgroundColor).Foreground(errColor).Render
 )
 
 func (model TypeModel) Init() tea.Cmd {
@@ -46,41 +46,49 @@ func (model TypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				model.cursor -= 1
 				model.userInput = model.userInput[0 : len(model.userInput)-1]
 			}
-			//TODO CTRL+BACKSPACE to delete current word.
+		//TODO CTRL+BACKSPACE to delete current word.
+		case tea.KeyCtrlH: //ctrl + backspace
+			// find the most recent space character before the current cursor position
+			// set cursor to that index
+			// delete user phrase after index.
 		}
 
 	case tea.WindowSizeMsg:
-		style = style.Width(msg.Width)
+		containerStyle = containerStyle.Width(msg.Width)
 	}
 	return model, nil
 }
 
 func (model TypeModel) View() string {
-	// TODO: I'm not sure of how to change the foreground color for single characters.
-	//	     Rendering a single character width's worth of stuff is strangely difficult, which is needed to swap styles...
-	//		 they have this kind of working in their example so look into that i guess.
-	// 		 https://github.com/charmbracelet/lipgloss/blob/master/example/main.go
-	//[1;38;2;247;178;183;48;2;22;0;30mplease work eventually[0m
-	//[1;38;2;247;178;183;48;2;22;0;30mp[0m[1;38;2;247;178;183;48;2;22;0;30ml[0m
-
-	//38;                   true color setting.
-	//ESC[1;34;{...}m   --> graphics mode for cell
-
-	doc := ""
 	totalLength := len(model.phrase)
 	if totalLength < len(model.userInput) {
 		totalLength = len(model.userInput)
 	}
 
+	doc := ""
 	for i := 0; i < totalLength; i++ {
-		if i < len(model.userInput) {
-			doc += string(model.userInput[i])
-		} else {
-			doc += string(model.phrase[i])
+		switch {
+		//no input - always phrase
+		case len(model.userInput) == 0:
+			doc += phraseStyle(string(model.phrase[i]))
+		// input too long, always error
+		case i > len(model.phrase)-1:
+			doc += errorStyle(string(model.userInput[i]))
+		//input too short, always phrase
+		case i > len(model.userInput)-1:
+			doc += phraseStyle(string(model.phrase[i]))
+		//match
+		case model.userInput[i] == model.phrase[i]:
+			doc += inputStyle(string(model.userInput[i]))
+		//nomatch
+		case model.userInput[i] != model.phrase[i]:
+			doc += errorStyle(string(model.userInput[i]))
+		default:
+			panic("view render unreachable statement")
 		}
 	}
 
-	return style.Render(doc)
+	return containerStyle.Render(doc)
 }
 
 func initialModel() TypeModel {
