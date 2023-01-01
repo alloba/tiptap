@@ -7,22 +7,22 @@ import (
 )
 
 func GenerateTypingPhrase(length int) string {
-    r := rand.New(rand.NewSource(time.Now().UnixMicro()))
-    
+	r := rand.New(rand.NewSource(time.Now().UnixMicro()))
+
 	generated := make([]string, length)
 	for i := 0; i < length; i++ {
 		generated[i] = wordlist[r.Intn(length)]
 	}
 
-    genString := "" 
-    for _, x := range(generated) {
-        genString = genString + " " + x
-    }
+	genString := ""
+	for _, x := range generated {
+		genString = genString + " " + x
+	}
 
-return     strings.TrimSpace(genString)
+	return strings.TrimSpace(genString)
 }
 
-//200 most common english words. 
+//200 most common english words.
 //TODO replace this with a text file that is loaded into memory
 var wordlist = [...]string{
 	"the", "be", "of", "and", "a", "to", "in", "he", "have", "it", "that", "for", "they", "I", "with", "as",
