@@ -1,12 +1,13 @@
 package main
 
 import (
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type TypeModel struct {
-	cursor    int //TODO: maybe use the textinput bubble instead of dealing with a cursor like this...
 	phrase    string
 	userInput string
 }
@@ -23,7 +24,8 @@ var (
 			PaddingTop(1).
 			PaddingLeft(2)
 
-	inputStyle  = lipgloss.NewStyle().Background(background).Foreground(inputColor).Render // a direct reference to the function, not an invocation?
+	// These are defined as functions to allow wrapping individual characters in the style easily.
+	inputStyle  = lipgloss.NewStyle().Background(background).Foreground(inputColor).Render
 	phraseStyle = lipgloss.NewStyle().Background(background).Foreground(phraseColor).Render
 	errorStyle  = lipgloss.NewStyle().Background(errBackgroundColor).Foreground(errColor).Render
 )
@@ -32,26 +34,49 @@ func (model TypeModel) Init() tea.Cmd {
 	return nil
 }
 
+// Handle all user input events during the update loop.
+func processUserInputEvents(msg tea.KeyMsg, model TypeModel) (tea.Model, tea.Cmd) {
+	switch msg.Type {
+
+	case tea.KeyCtrlC, tea.KeyEscape:
+		return model, tea.Quit
+
+	case tea.KeyRunes, tea.KeySpace:
+		model.userInput += msg.String()
+
+	case tea.KeyBackspace:
+		if len(model.userInput) == 0 {
+			return model, nil
+		}
+		model.userInput = model.userInput[0 : len(model.userInput)-1]
+
+	case tea.KeyCtrlH: //ctrl + backspace
+		if len(model.userInput) == 0 {
+			return model, nil
+		}
+
+		var prevWordIndex = strings.LastIndex(model.userInput, " ")
+		if prevWordIndex == -1 {
+			model.userInput = "" // only one word exists, clear the entire field.
+			return model, nil
+		}
+
+		model.userInput = model.userInput[0:prevWordIndex]
+	}
+	return model, nil
+}
+
 func (model TypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	//has the typing test been completed?
+	if len(model.userInput) == len(model.phrase) {
+		print("Completed typing test")
+		return model, tea.Quit
+	}
+
+	//event processing
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC:
-			return model, tea.Quit
-		case tea.KeyRunes, tea.KeySpace:
-			model.userInput += msg.String()
-			model.cursor += 1
-		case tea.KeyBackspace:
-			if model.cursor > 0 {
-				model.cursor -= 1
-				model.userInput = model.userInput[0 : len(model.userInput)-1]
-			}
-		//TODO CTRL+BACKSPACE to delete current word.
-		case tea.KeyCtrlH: //ctrl + backspace
-			// find the most recent space character before the current cursor position
-			// set cursor to that index
-			// delete user phrase after index.
-		}
+		return processUserInputEvents(msg, model)
 
 	case tea.WindowSizeMsg:
 		containerStyle = containerStyle.Width(msg.Width)
@@ -93,8 +118,7 @@ func (model TypeModel) View() string {
 
 func initialModel() TypeModel {
 	return TypeModel{
-		cursor:    0,
-		phrase:    "sample text here.",
+		phrase:    GenerateTypingPhrase(50),
 		userInput: "",
 	}
 }
