@@ -16,8 +16,10 @@ var (
 	background         = lipgloss.Color("#16001E")
 	phraseColor        = lipgloss.Color("#F7B2B7")
 	errColor           = lipgloss.Color("#7F2982")
-	errBackgroundColor = lipgloss.Color("#000000")
+	errBackgroundColor = lipgloss.Color("#FFFFFF")
 	inputColor         = lipgloss.Color("#DE639A")
+
+	cursorColor = lipgloss.Color("FAFA00")
 
 	containerStyle = lipgloss.NewStyle().
 			Bold(true).
@@ -28,6 +30,7 @@ var (
 	inputStyle  = lipgloss.NewStyle().Background(background).Foreground(inputColor).Render
 	phraseStyle = lipgloss.NewStyle().Background(background).Foreground(phraseColor).Render
 	errorStyle  = lipgloss.NewStyle().Background(errBackgroundColor).Foreground(errColor).Render
+	cursorStyle = lipgloss.NewStyle().Foreground(cursorColor).Render
 )
 
 func (model TypeModel) Init() tea.Cmd {
@@ -93,21 +96,34 @@ func (model TypeModel) View() string {
 	doc := ""
 	for i := 0; i < totalLength; i++ {
 		switch {
-		//no input - always phrase
+		//no user input - color the first character as the cursor, phrase style otherwise.
 		case len(model.userInput) == 0:
-			doc += phraseStyle(string(model.phrase[i]))
+			if i == 0 {
+				doc += cursorStyle(string(model.phrase[i]))
+			} else {
+				doc += phraseStyle(string(model.phrase[i]))
+			}
+
+		// cursor position - apply cursor style.
+		case i == len(model.userInput):
+			doc += cursorStyle(string(model.phrase[i]))
+
 		// input too long, always error
 		case i > len(model.phrase)-1:
 			doc += errorStyle(string(model.userInput[i]))
+
 		//input too short, always phrase
 		case i > len(model.userInput)-1:
 			doc += phraseStyle(string(model.phrase[i]))
+
 		//match
 		case model.userInput[i] == model.phrase[i]:
 			doc += inputStyle(string(model.userInput[i]))
+
 		//nomatch
 		case model.userInput[i] != model.phrase[i]:
 			doc += errorStyle(string(model.userInput[i]))
+
 		default:
 			panic("view render unreachable statement")
 		}
