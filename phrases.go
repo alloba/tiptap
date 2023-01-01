@@ -2,13 +2,16 @@ package main
 
 import (
 	"math/rand"
-    "strings"
+	"strings"
+	"time"
 )
 
 func GenerateTypingPhrase(length int) string {
+    r := rand.New(rand.NewSource(time.Now().UnixMicro()))
+    
 	generated := make([]string, length)
 	for i := 0; i < length; i++ {
-		generated[i] = wordlist[rand.Intn(length)]
+		generated[i] = wordlist[r.Intn(length)]
 	}
 
     genString := "" 
