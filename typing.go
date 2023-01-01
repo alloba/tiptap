@@ -38,7 +38,7 @@ func (model TypeModel) Init() tea.Cmd {
 }
 
 // Handle all user input events during the update loop.
-func processUserInputEvents(msg tea.KeyMsg, model TypeModel) (tea.Model, tea.Cmd) {
+func processUserInputEvents(msg tea.KeyMsg, model TypeModel) (TypeModel, tea.Cmd) {
 	switch msg.Type {
 
 	case tea.KeyCtrlC, tea.KeyEscape:
@@ -70,21 +70,25 @@ func processUserInputEvents(msg tea.KeyMsg, model TypeModel) (tea.Model, tea.Cmd
 }
 
 func (model TypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	//has the typing test been completed?
-	if len(model.userInput) == len(model.phrase) {
-		print("Completed typing test")
-		return model, tea.Quit
-	}
+
+    // tracking these explicitly allows for easier checking of test completion
+    var returnModel TypeModel = model 
+    var returnCmd tea.Cmd = nil 
 
 	//event processing
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		return processUserInputEvents(msg, model)
+		returnModel, returnCmd = processUserInputEvents(msg, model)
 
 	case tea.WindowSizeMsg:
 		containerStyle = containerStyle.Width(msg.Width)
 	}
-	return model, nil
+
+	//has the typing test been completed?
+	if len(model.userInput) == len(model.phrase)-1 {
+		return model, tea.Quit
+	}
+	return returnModel, returnCmd
 }
 
 func (model TypeModel) View() string {
@@ -134,7 +138,7 @@ func (model TypeModel) View() string {
 
 func initialModel() TypeModel {
 	return TypeModel{
-		phrase:    GenerateTypingPhrase(50),
+		phrase:    GenerateTypingPhrase(10),
 		userInput: "",
 	}
 }
