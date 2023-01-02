@@ -7,6 +7,15 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+
+//TODO: I think the next step is to organize everything to exist within a logical container. 
+//      Like the phrase and userinput of the current type model would be extracted out into its own struct, 
+//      as would the styling. 
+//      then both of those would be wrapped in another struct, the "view", 
+//      which would mostly just pass render and update events to child structs.
+//
+//      This will give me a good example of what other views should look like going forward (start screen, stats screen). 
+
 type TypeModel struct {
 	phrase    string
 	userInput string
