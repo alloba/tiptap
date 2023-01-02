@@ -10,27 +10,16 @@ import (
 type TypeModel struct {
 	phrase    string
 	userInput string
+	style     Style
 }
 
-var (
-	background         = lipgloss.Color("#16001E")
-	phraseColor        = lipgloss.Color("#F7B2B7")
-	errColor           = lipgloss.Color("#7F2982")
-	errBackgroundColor = lipgloss.Color("#FFFFFF")
-	inputColor         = lipgloss.Color("#DE639A")
-	cursorColor        = lipgloss.Color("FAFA00")
-
-	containerStyle = lipgloss.NewStyle().
-			Bold(true).
-			PaddingTop(1).
-			PaddingLeft(2)
-
-	// These are defined as functions to allow wrapping individual characters in the style easily.
-	inputStyle  = lipgloss.NewStyle().Background(background).Foreground(inputColor).Render
-	phraseStyle = lipgloss.NewStyle().Background(background).Foreground(phraseColor).Render
-	errorStyle  = lipgloss.NewStyle().Background(errBackgroundColor).Foreground(errColor).Render
-	cursorStyle = lipgloss.NewStyle().Foreground(cursorColor).Render
-)
+type Style struct {
+	containerStyle lipgloss.Style
+	inputStyle     lipgloss.Style
+	phraseStyle    lipgloss.Style
+	errorStyle     lipgloss.Style
+	cursorStyle    lipgloss.Style
+}
 
 func (model TypeModel) Init() tea.Cmd {
 	return nil
@@ -80,7 +69,7 @@ func (model TypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		returnModel, returnCmd = processUserInputEvents(msg, model)
 
 	case tea.WindowSizeMsg:
-		containerStyle = containerStyle.Width(msg.Width)
+		model.style.containerStyle = model.style.containerStyle.Width(msg.Width)
 	}
 
 	//has the typing test been completed?
@@ -105,7 +94,7 @@ func (model TypeModel) View() string {
 		doc += renderTechnique_errorPriority(model, i)
 	}
 
-	return containerStyle.Render(doc)
+	return model.style.containerStyle.Render(doc)
 }
 
 // Incorrectly typed characters overwrite target characters in the view.
@@ -116,30 +105,30 @@ func renderTechnique_errorPriority(model TypeModel, i int) string {
 	//no user input - color the first character as the cursor, phrase style otherwise.
 	case len(model.userInput) == 0:
 		if i == 0 {
-			return cursorStyle(string(model.phrase[i]))
+			return model.style.cursorStyle.Render(string(model.phrase[i]))
 		} else {
-			return phraseStyle(string(model.phrase[i]))
+			return model.style.phraseStyle.Render(string(model.phrase[i]))
 		}
 
 	// cursor position - apply cursor style.
 	case i == len(model.userInput):
-		return cursorStyle(string(model.phrase[i]))
+		return model.style.cursorStyle.Render(string(model.phrase[i]))
 
 	// input too long, always error
 	case i > len(model.phrase)-1:
-		return errorStyle(string(model.userInput[i]))
+		return model.style.errorStyle.Render(string(model.userInput[i]))
 
 	//input too short, always phrase
 	case i > len(model.userInput)-1:
-		return phraseStyle(string(model.phrase[i]))
+		return model.style.phraseStyle.Render(string(model.phrase[i]))
 
 	//match
 	case model.userInput[i] == model.phrase[i]:
-		return inputStyle(string(model.userInput[i]))
+		return model.style.inputStyle.Render(string(model.userInput[i]))
 
 	//nomatch
 	case model.userInput[i] != model.phrase[i]:
-		return errorStyle(string(model.userInput[i]))
+		return model.style.errorStyle.Render(string(model.userInput[i]))
 
 	default:
 		panic("view render unreachable statement")
@@ -150,5 +139,12 @@ func initialModel() TypeModel {
 	return TypeModel{
 		phrase:    GenerateTypingPhrase(300),
 		userInput: "",
+		style: Style{
+			containerStyle: lipgloss.NewStyle().Bold(true).PaddingTop(1).PaddingLeft(2),
+			inputStyle:     lipgloss.NewStyle().Background(lipgloss.Color("#16001E")).Foreground(lipgloss.Color("#DE639A")),
+			phraseStyle:    lipgloss.NewStyle().Background(lipgloss.Color("#16001E")).Foreground(lipgloss.Color("#F7B2B7")),
+			errorStyle:     lipgloss.NewStyle().Background(lipgloss.Color("#FFFFFF")).Foreground(lipgloss.Color("#7F2982")),
+			cursorStyle:    lipgloss.NewStyle().Foreground(lipgloss.Color("#FAFA00")),
+		},
 	}
 }
