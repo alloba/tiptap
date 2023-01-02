@@ -18,8 +18,7 @@ var (
 	errColor           = lipgloss.Color("#7F2982")
 	errBackgroundColor = lipgloss.Color("#FFFFFF")
 	inputColor         = lipgloss.Color("#DE639A")
-
-	cursorColor = lipgloss.Color("FAFA00")
+	cursorColor        = lipgloss.Color("FAFA00")
 
 	containerStyle = lipgloss.NewStyle().
 			Bold(true).
@@ -71,9 +70,9 @@ func processUserInputEvents(msg tea.KeyMsg, model TypeModel) (TypeModel, tea.Cmd
 
 func (model TypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
-    // tracking these explicitly allows for easier checking of test completion
-    var returnModel TypeModel = model 
-    var returnCmd tea.Cmd = nil 
+	// tracking these explicitly allows for easier checking of test completion
+	var returnModel TypeModel = model
+	var returnCmd tea.Cmd = nil
 
 	//event processing
 	switch msg := msg.(type) {
@@ -91,6 +90,10 @@ func (model TypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return returnModel, returnCmd
 }
 
+// Rendering the typing view is done in two major parts.
+// First, each character on the screen is processed and has style rules applied to it based on
+//   whether it is the cursor position, untyped, typed correct, or typed incorrect character.
+// Second, the entire string is wrapped in a container that defines things like max width and spacing.
 func (model TypeModel) View() string {
 	totalLength := len(model.phrase)
 	if totalLength < len(model.userInput) {
@@ -99,46 +102,53 @@ func (model TypeModel) View() string {
 
 	doc := ""
 	for i := 0; i < totalLength; i++ {
-		switch {
-		//no user input - color the first character as the cursor, phrase style otherwise.
-		case len(model.userInput) == 0:
-			if i == 0 {
-				doc += cursorStyle(string(model.phrase[i]))
-			} else {
-				doc += phraseStyle(string(model.phrase[i]))
-			}
-
-		// cursor position - apply cursor style.
-		case i == len(model.userInput):
-			doc += cursorStyle(string(model.phrase[i]))
-
-		// input too long, always error
-		case i > len(model.phrase)-1:
-			doc += errorStyle(string(model.userInput[i]))
-
-		//input too short, always phrase
-		case i > len(model.userInput)-1:
-			doc += phraseStyle(string(model.phrase[i]))
-
-		//match
-		case model.userInput[i] == model.phrase[i]:
-			doc += inputStyle(string(model.userInput[i]))
-
-		//nomatch
-		case model.userInput[i] != model.phrase[i]:
-			doc += errorStyle(string(model.userInput[i]))
-
-		default:
-			panic("view render unreachable statement")
-		}
+		doc += renderTechnique_errorPriority(model, i)
 	}
 
 	return containerStyle.Render(doc)
 }
 
+// Incorrectly typed characters overwrite target characters in the view.
+// This makes it easy to see what exactly was typed, but makes it harder to recover quickly.
+func renderTechnique_errorPriority(model TypeModel, i int) string {
+
+	switch {
+	//no user input - color the first character as the cursor, phrase style otherwise.
+	case len(model.userInput) == 0:
+		if i == 0 {
+			return cursorStyle(string(model.phrase[i]))
+		} else {
+			return phraseStyle(string(model.phrase[i]))
+		}
+
+	// cursor position - apply cursor style.
+	case i == len(model.userInput):
+		return cursorStyle(string(model.phrase[i]))
+
+	// input too long, always error
+	case i > len(model.phrase)-1:
+		return errorStyle(string(model.userInput[i]))
+
+	//input too short, always phrase
+	case i > len(model.userInput)-1:
+		return phraseStyle(string(model.phrase[i]))
+
+	//match
+	case model.userInput[i] == model.phrase[i]:
+		return inputStyle(string(model.userInput[i]))
+
+	//nomatch
+	case model.userInput[i] != model.phrase[i]:
+		return errorStyle(string(model.userInput[i]))
+
+	default:
+		panic("view render unreachable statement")
+	}
+}
+
 func initialModel() TypeModel {
 	return TypeModel{
-		phrase:    GenerateTypingPhrase(10),
+		phrase:    GenerateTypingPhrase(300),
 		userInput: "",
 	}
 }
