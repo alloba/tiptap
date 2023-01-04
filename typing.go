@@ -4,39 +4,27 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
-type TypeModel struct {
-	phrase    string
-	userInput string
-	style     Style
+// The TypingView is the main user-experience struct.
+// This stores state and function definitions for the actual typing test that a user takes.
+type TypingView struct {
+	phrase     string
+	userInput  string
+	style      ViewStyle
+	parentView tea.Model
 }
 
-func NewTypingModel() TypeModel {
-	style := Style{
-		containerStyle: lipgloss.NewStyle().Bold(true).PaddingTop(1).PaddingLeft(2),
-		inputStyle:     lipgloss.NewStyle().Background(lipgloss.Color("#16001E")).Foreground(lipgloss.Color("#DE639A")),
-		phraseStyle:    lipgloss.NewStyle().Background(lipgloss.Color("#16001E")).Foreground(lipgloss.Color("#F7B2B7")),
-		errorStyle:     lipgloss.NewStyle().Background(lipgloss.Color("#FFFFFF")).Foreground(lipgloss.Color("#7F2982")),
-		cursorStyle:    lipgloss.NewStyle().Foreground(lipgloss.Color("#FAFA00")),
-	}
-
-	return TypeModel{
-		phrase:    GenerateTypingPhrase(20),
-		userInput: "",
-		style:     style,
-	}
-}
-
-func (model TypeModel) Init() tea.Cmd {
+func (model *TypingView) Init() tea.Cmd {
+	model.phrase = GenerateTypingPhrase(10)
+	model.userInput = ""
 	return nil
 }
 
-func (model TypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (model *TypingView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// tracking these explicitly allows for easier checking of test completion
-	var returnModel TypeModel = model
+	var returnModel *TypingView = model
 	var returnCmd tea.Cmd = nil
 
 	//event processing
@@ -49,17 +37,16 @@ func (model TypeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	//has the typing test been completed?
-	if len(model.userInput) == len(model.phrase)-1 {
-		return model, tea.Quit
+	if len(model.userInput) == len(model.phrase) {
+		return model.parentView, nil
 	}
 	return returnModel, returnCmd
 }
 
-// Rendering the typing view is done in two major parts.
-// First, each character on the screen is processed and has style rules applied to it based on
-//   whether it is the cursor position, untyped, typed correct, or typed incorrect character.
-// Second, the entire string is wrapped in a container that defines things like max width and spacing.
-func (model TypeModel) View() string {
+// The View function travels the length of the user input and generated phrase to apply style to each character.
+// Different styling is applied based on whether the current character is unmodified, correct, or in error.
+// I expect the finer details of this to change over time (which is why there is a weird child function being called)
+func (model *TypingView) View() string {
 	totalLength := len(model.phrase)
 	if totalLength < len(model.userInput) {
 		totalLength = len(model.userInput)
@@ -67,14 +54,14 @@ func (model TypeModel) View() string {
 
 	doc := ""
 	for i := 0; i < totalLength; i++ {
-		doc += renderTechnique_errorPriority(model, i)
+		doc += renderTechnique_errorPriority(*model, i)
 	}
 
 	return model.style.containerStyle.Render(doc)
 }
 
 // Handle all user input events during the update loop.
-func processUserInputEvents(msg tea.KeyMsg, model TypeModel) (TypeModel, tea.Cmd) {
+func processUserInputEvents(msg tea.KeyMsg, model *TypingView) (*TypingView, tea.Cmd) {
 	switch msg.Type {
 
 	case tea.KeyCtrlC, tea.KeyEscape:
@@ -107,7 +94,7 @@ func processUserInputEvents(msg tea.KeyMsg, model TypeModel) (TypeModel, tea.Cmd
 
 // Incorrectly typed characters overwrite target characters in the view.
 // This makes it easy to see what exactly was typed, but makes it harder to recover quickly.
-func renderTechnique_errorPriority(model TypeModel, i int) string {
+func renderTechnique_errorPriority(model TypingView, i int) string {
 
 	switch {
 	//no user input - color the first character as the cursor, phrase style otherwise.
