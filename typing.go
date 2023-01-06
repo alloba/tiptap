@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"math"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -13,11 +16,13 @@ type TypingView struct {
 	userInput  string
 	style      ViewStyle
 	parentView tea.Model
+    startTime time.Time
 }
 
 func (model *TypingView) Init() tea.Cmd {
 	model.phrase = GenerateTypingPhrase(10)
 	model.userInput = ""
+    model.startTime = time.Now()
 	return nil
 }
 
@@ -38,6 +43,7 @@ func (model *TypingView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	//has the typing test been completed?
 	if len(model.userInput) == len(model.phrase) {
+        //TODO return NewResultsScreen{parentView: model.parentView, style: model.style, time: time.Now().Sub(model.startTime)}, nil 
 		return model.parentView, nil
 	}
 	return returnModel, returnCmd
@@ -56,6 +62,9 @@ func (model *TypingView) View() string {
 	for i := 0; i < totalLength; i++ {
 		doc += renderTechnique_errorPriority(*model, i)
 	}
+    doc += "\n"
+    elapsedTimeSeconds := math.Floor(time.Now().Sub(model.startTime).Seconds())
+    doc += fmt.Sprintf("%v",elapsedTimeSeconds) //TODO: it would be nice if this updated live. but currently it's on whatever standard render loop.
 
 	return model.style.containerStyle.Render(doc)
 }
