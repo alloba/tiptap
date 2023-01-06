@@ -34,9 +34,15 @@ func (model *TypingView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	//event processing
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		returnModel, returnCmd = processUserInputEvents(msg, model)
 
+	case tea.KeyMsg:
+		switch msg.Type {
+		//handling exit case separately to allow for screen wipe.
+		case tea.KeyCtrlC, tea.KeyEscape:
+			return &ExitView{}, tea.Quit
+		default:
+			returnModel, returnCmd = processUserInputEvents(msg, model)
+		}
 	case tea.WindowSizeMsg:
 		model.style.containerStyle = model.style.containerStyle.Width(msg.Width)
 	}
@@ -78,9 +84,6 @@ func (model *TypingView) View() string {
 // Handle all user input events during the update loop.
 func processUserInputEvents(msg tea.KeyMsg, model *TypingView) (*TypingView, tea.Cmd) {
 	switch msg.Type {
-
-	case tea.KeyCtrlC, tea.KeyEscape:
-		return model, tea.Quit
 
 	case tea.KeyRunes, tea.KeySpace:
 		model.userInput += msg.String()

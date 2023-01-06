@@ -25,7 +25,7 @@ func (model *ResultsView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC:
-			return model, tea.Quit
+			return &ExitView{}, tea.Quit
 		case tea.KeyEscape, tea.KeyBackspace:
 			return model.parentView, nil
 		}

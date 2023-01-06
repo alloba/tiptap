@@ -38,7 +38,7 @@ func (model *StartMenuView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			model.cursor += 1
 		case "ctrl+c", "q", "esc":
-			return model, tea.Quit
+			return &ExitView{}, tea.Quit
 		case "enter", "space":
 			cmd := model.items[model.cursor].view.Init()
 			return model.items[model.cursor].view, cmd
