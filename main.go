@@ -19,12 +19,19 @@ type ViewStyle struct {
 func main() {
 
 	//TODO: this should be loaded from a config file eventually.
+	generalBackground := lipgloss.Color("#558B6A")
+	errorBackground := lipgloss.Color("#FFFFFF")
+	cursorColor := lipgloss.Color("#FAFA00")
+	untypedTextColor := lipgloss.Color("#F7B2B7")
+	correctTextColor := lipgloss.Color("#DE639A")
+	errorTextColor := lipgloss.Color("#7F2982")
+
 	var globalStyle = ViewStyle{
-		containerStyle: lipgloss.NewStyle().Bold(true).PaddingTop(1).PaddingLeft(2),
-		inputStyle:     lipgloss.NewStyle().Background(lipgloss.Color("#16001E")).Foreground(lipgloss.Color("#DE639A")),
-		phraseStyle:    lipgloss.NewStyle().Background(lipgloss.Color("#16001E")).Foreground(lipgloss.Color("#F7B2B7")),
-		errorStyle:     lipgloss.NewStyle().Background(lipgloss.Color("#FFFFFF")).Foreground(lipgloss.Color("#7F2982")),
-		cursorStyle:    lipgloss.NewStyle().Foreground(lipgloss.Color("#FAFA00")),
+		containerStyle: lipgloss.NewStyle().Background(generalBackground).PaddingTop(1).PaddingLeft(2).Align(lipgloss.Center),
+		inputStyle:     lipgloss.NewStyle().Foreground(correctTextColor).Background(generalBackground),
+		phraseStyle:    lipgloss.NewStyle().Foreground(untypedTextColor).Background(generalBackground),
+		errorStyle:     lipgloss.NewStyle().Foreground(errorTextColor).Background(errorBackground),
+		cursorStyle:    lipgloss.NewStyle().Foreground(cursorColor).Background(generalBackground),
 	}
 
 	var menu = &StartMenuView{

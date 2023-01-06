@@ -44,6 +44,7 @@ func (model *StartMenuView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return model.items[model.cursor].view, cmd
 		}
 
+    // NOTE* On Windows OS, this will only fire once on initial load. Currently it doesn't support the SIGWINCH signal. 
 	case tea.WindowSizeMsg:
 		model.style.containerStyle = model.style.containerStyle.Width(msg.Width)
 	}
