@@ -27,11 +27,16 @@ func main() {
 	errorTextColor := lipgloss.Color("#7F2982")
 
 	var globalStyle = ViewStyle{
-		containerStyle: lipgloss.NewStyle().Background(generalBackground).PaddingTop(1).PaddingLeft(2).Align(lipgloss.Center),
-		inputStyle:     lipgloss.NewStyle().Foreground(correctTextColor).Background(generalBackground),
-		phraseStyle:    lipgloss.NewStyle().Foreground(untypedTextColor).Background(generalBackground),
-		errorStyle:     lipgloss.NewStyle().Foreground(errorTextColor).Background(errorBackground),
-		cursorStyle:    lipgloss.NewStyle().Foreground(cursorColor).Background(generalBackground),
+		containerStyle: lipgloss.NewStyle().Background(generalBackground).
+			PaddingBottom(1).
+			PaddingLeft(1).
+			PaddingTop(1).
+			MarginLeft(1),
+
+		inputStyle:  lipgloss.NewStyle().Foreground(correctTextColor).Background(generalBackground),
+		phraseStyle: lipgloss.NewStyle().Foreground(untypedTextColor).Background(generalBackground),
+		errorStyle:  lipgloss.NewStyle().Foreground(errorTextColor).Background(errorBackground),
+		cursorStyle: lipgloss.NewStyle().Foreground(cursorColor).Background(generalBackground),
 	}
 
 	var menu = &StartMenuView{

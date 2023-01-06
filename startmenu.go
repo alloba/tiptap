@@ -44,8 +44,7 @@ func (model *StartMenuView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return model.items[model.cursor].view, cmd
 		}
 
-    // NOTE* On Windows OS, this will only fire once on initial load. Currently it doesn't support the SIGWINCH signal. 
-	case tea.WindowSizeMsg:
+	case tea.WindowSizeMsg: // NOTE* On Windows OS, this will only fire once on initial load. Currently it doesn't support the SIGWINCH signal.
 		model.style.containerStyle = model.style.containerStyle.Width(msg.Width)
 	}
 
@@ -55,10 +54,14 @@ func (model *StartMenuView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (model *StartMenuView) View() string {
 	docString := ""
 	for i, item := range model.items {
+		append := "\n" //this is awful but i am lazy. dont add an newline to the render if it's the last item in the list.
+		if i == len(model.items)-1 {
+			append = ""
+		}
 		if model.cursor == i {
-			docString += model.style.cursorStyle.Render(item.text) + "\n"
+			docString += model.style.cursorStyle.Render(item.text) + append
 		} else {
-			docString += model.style.phraseStyle.Render(item.text) + "\n"
+			docString += model.style.phraseStyle.Render(item.text) + append
 		}
 	}
 	return model.style.containerStyle.Render(docString)
