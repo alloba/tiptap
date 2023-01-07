@@ -19,7 +19,6 @@ func main() {
 
 	settingsFile := LoadUserSettings()
 	appStyle := createStyle(settingsFile)
-	wordCount := settingsFile.WordCount
 
 	var menu = &StartMenuView{
 		cursor: 0,
@@ -30,11 +29,11 @@ func main() {
 	exitView := &ExitView{}
 	exitMenuItem := &MenuEntry{text: "Exit", view: exitView}
 
-	typingView := &TypingView{style: appStyle, parentView: menu, wordCount: wordCount}
+	typingView := &TypingView{style: appStyle, parentView: menu, settingsFile: &settingsFile}
 	typingMenuItem := &MenuEntry{text: "Typing Test", view: typingView}
 
 	optionsView := &OptionsView{style: appStyle, parentView: menu, settings: &settingsFile}
-	optionsMenuItem := &MenuEntry{text: "Options", view: optionsView}
+	optionsMenuItem := &MenuEntry{text: "Change WPM", view: optionsView}
 
 	menu.items = append(menu.items, typingMenuItem)
 	menu.items = append(menu.items, exitMenuItem)

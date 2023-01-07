@@ -12,16 +12,16 @@ import (
 // The TypingView is the main user-experience struct.
 // This stores state and function definitions for the actual typing test that a user takes.
 type TypingView struct {
-	phrase     string
-	userInput  string
-	style      ViewStyle
-	parentView tea.Model
-	startTime  time.Time
-	wordCount  int
+	phrase       string
+	userInput    string
+	style        ViewStyle
+	parentView   tea.Model
+	startTime    time.Time
+	settingsFile *SettingsFile
 }
 
 func (model *TypingView) Init() tea.Cmd {
-	model.phrase = GenerateTypingPhrase(model.wordCount)
+	model.phrase = GenerateTypingPhrase(model.settingsFile.WordCount)
 	model.userInput = ""
 	model.startTime = time.Now()
 	return nil
@@ -39,8 +39,10 @@ func (model *TypingView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		//handling exit case separately to allow for screen wipe.
-		case tea.KeyCtrlC, tea.KeyEscape:
+		case tea.KeyCtrlC:
 			return &ExitView{}, tea.Quit
+		case tea.KeyEscape:
+			return model.parentView, nil
 		default:
 			returnModel, returnCmd = processUserInputEvents(msg, model)
 		}

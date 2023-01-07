@@ -39,7 +39,7 @@ func (model *StartMenuView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			model.cursor += 1
 		case "ctrl+c", "q", "esc":
 			return &ExitView{}, tea.Quit
-		case "enter", "space":
+		case "enter", " ":
 			cmd := model.items[model.cursor].view.Init()
 			return model.items[model.cursor].view, cmd
 		}
@@ -54,14 +54,14 @@ func (model *StartMenuView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (model *StartMenuView) View() string {
 	docString := ""
 	for i, item := range model.items {
-		append := "\n" //this is awful but i am lazy. dont add an newline to the render if it's the last item in the list.
+		appendStr := "\n" //this is awful but i am lazy. dont add an newline to the render if it's the last item in the list.
 		if i == len(model.items)-1 {
-			append = ""
+			appendStr = ""
 		}
 		if model.cursor == i {
-			docString += model.style.cursorStyle.Render(item.text) + append
+			docString += model.style.cursorStyle.Render(item.text) + appendStr
 		} else {
-			docString += model.style.phraseStyle.Render(item.text) + append
+			docString += model.style.phraseStyle.Render(item.text) + appendStr
 		}
 	}
 	return model.style.containerStyle.Render(docString)
