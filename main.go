@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"os"
 )
 
 type ViewStyle struct {
@@ -18,13 +17,43 @@ type ViewStyle struct {
 
 func main() {
 
-	//TODO: this should be loaded from a config file eventually.
-	generalBackground := lipgloss.Color("#558B6A")
-	errorBackground := lipgloss.Color("#ED6B86")
-	cursorColor := lipgloss.Color("#D58936")
-	untypedTextColor := lipgloss.Color("#F7B2B7")
-	correctTextColor := lipgloss.Color("#DE639A")
-	errorTextColor := lipgloss.Color("#7F2982")
+	settingsFile := LoadUserSettings()
+	appStyle := createStyle(settingsFile)
+	wordCount := settingsFile.WordCount
+
+	var menu = &StartMenuView{
+		cursor: 0,
+		items:  []*MenuEntry{},
+		style:  appStyle,
+	}
+
+	exitView := &ExitView{}
+	exitMenuItem := &MenuEntry{text: "Exit", view: exitView}
+
+	typingView := &TypingView{style: appStyle, parentView: menu, wordCount: wordCount}
+	typingMenuItem := &MenuEntry{text: "Typing Test", view: typingView}
+
+	optionsView := &OptionsView{style: appStyle, parentView: menu, settings: &settingsFile}
+	optionsMenuItem := &MenuEntry{text: "Options", view: optionsView}
+
+	menu.items = append(menu.items, typingMenuItem)
+	menu.items = append(menu.items, exitMenuItem)
+	menu.items = append(menu.items, optionsMenuItem)
+
+	p := tea.NewProgram(menu)
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Alas, there's been an error: %v", err)
+		os.Exit(1)
+	}
+}
+
+func createStyle(settingsFile SettingsFile) ViewStyle {
+	generalBackground := lipgloss.Color(settingsFile.Style.Background)
+	errorBackground := lipgloss.Color(settingsFile.Style.Errorbackground)
+	cursorColor := lipgloss.Color(settingsFile.Style.Cursor)
+	untypedTextColor := lipgloss.Color(settingsFile.Style.Text)
+	correctTextColor := lipgloss.Color(settingsFile.Style.Correct)
+	errorTextColor := lipgloss.Color(settingsFile.Style.Err)
 
 	var globalStyle = ViewStyle{
 		containerStyle: lipgloss.NewStyle().Background(generalBackground).
@@ -39,24 +68,5 @@ func main() {
 		cursorStyle: lipgloss.NewStyle().Foreground(cursorColor).Background(generalBackground),
 	}
 
-	var menu = &StartMenuView{
-		cursor: 0,
-		items:  []*MenuEntry{},
-		style:  globalStyle,
-	}
-
-	exitView := &ExitView{}
-	exitMenuItem := &MenuEntry{text: "Exit", view: exitView}
-
-	var typingView = &TypingView{style: globalStyle, parentView: menu} //TODO would like to allow user-defined word count in this view.
-	var typingMenuItem = &MenuEntry{text: "Typing Test", view: typingView}
-
-	menu.items = append(menu.items, typingMenuItem)
-	menu.items = append(menu.items, exitMenuItem)
-
-	p := tea.NewProgram(menu)
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
-	}
+	return globalStyle
 }

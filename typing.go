@@ -17,10 +17,11 @@ type TypingView struct {
 	style      ViewStyle
 	parentView tea.Model
 	startTime  time.Time
+	wordCount  int
 }
 
 func (model *TypingView) Init() tea.Cmd {
-	model.phrase = GenerateTypingPhrase(10)
+	model.phrase = GenerateTypingPhrase(model.wordCount)
 	model.userInput = ""
 	model.startTime = time.Now()
 	return nil
@@ -29,7 +30,7 @@ func (model *TypingView) Init() tea.Cmd {
 func (model *TypingView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// tracking these explicitly allows for easier checking of test completion
-	var returnModel *TypingView = model
+	var returnModel = model
 	var returnCmd tea.Cmd = nil
 
 	//event processing
@@ -123,15 +124,14 @@ func renderTechnique_errorPriority(model TypingView, i int) string {
 			return model.style.phraseStyle.Render(string(model.phrase[i]))
 		}
 
-
 	// cursor position - apply cursor style.
 	case i == len(model.userInput):
-        // if there is no character, the foreground will not be rendered. so have to replace with a block char
-        if string(model.phrase[i]) == " " {
-            return model.style.cursorStyle.Render("█")
-        } else{
-            return model.style.cursorStyle.Render(string(model.phrase[i]))
-        }
+		// if there is no character, the foreground will not be rendered. so have to replace with a block char
+		if string(model.phrase[i]) == " " {
+			return model.style.cursorStyle.Render("█")
+		} else {
+			return model.style.cursorStyle.Render(string(model.phrase[i]))
+		}
 
 	// input too long, always error
 	case i > len(model.phrase)-1:
