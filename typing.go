@@ -126,6 +126,7 @@ func renderTechnique_errorPriority(model TypingView, i int) string {
 
 	// cursor position - apply cursor style.
 	case i == len(model.userInput):
+        // if there is no character, the foreground will not be rendered. so have to replace with a block char
         if string(model.phrase[i]) == " " {
             return model.style.cursorStyle.Render("█")
         } else{
