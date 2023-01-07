@@ -43,13 +43,21 @@ func (model *ResultsView) View() string {
 	docString += model.style.phraseStyle.Render(timeString)
 
 	docString += model.style.phraseStyle.Render("\n")
-
-	accuracyString := fmt.Sprintf("Accuracy %.1f%%", calculateInputAccuracy(model.targetPhrase, model.actualPhrase))
+	accuracyString := fmt.Sprintf("Accuracy %.1f%%", calculateInputAccuracy(model.targetPhrase, model.actualPhrase)*100)
 	docString += model.style.phraseStyle.Render(accuracyString)
+
+	docString += model.style.phraseStyle.Render("\n")
+	wpmString := fmt.Sprintf("Raw WPM: %.1f", calculateRawWpm(model.targetPhrase, model.actualPhrase, model.elapsedTime))
+	docString += model.style.phraseStyle.Render(wpmString)
+
+	docString += model.style.phraseStyle.Render("\n")
+	adjustedWpmString := fmt.Sprintf("Adjusted WPM: %.1f", calculateAdjustedWpm(model.targetPhrase, model.actualPhrase, model.elapsedTime))
+	docString += model.style.phraseStyle.Render(adjustedWpmString)
+
 	return model.style.containerStyle.Render(docString)
 }
 
-func calculateInputAccuracy(target string, actual string) float32 {
+func calculateInputAccuracy(target string, actual string) float64 {
 	totalLength := len(target)
 	correct := 0
 	for i := 0; i < totalLength; i++ {
@@ -58,5 +66,22 @@ func calculateInputAccuracy(target string, actual string) float32 {
 		}
 	}
 
-	return float32(correct) / float32(totalLength) * 100
+	return float64(correct) / float64(totalLength)
+}
+
+func calculateRawWpm(target string, actual string, elapsedTime time.Duration) float64 {
+	//a 'word' for the sake of typing speed is (essentially) any 5 rendered characters including spaces.
+	wordCount := float64(len(target)) / 5
+
+	wpm := wordCount / float64(elapsedTime.Minutes())
+	wpm = math.Floor(wpm)
+
+	return wpm
+}
+
+func calculateAdjustedWpm(target string, actual string, elapsedTime time.Duration) float64 {
+	accuracy := calculateInputAccuracy(target, actual)
+	wpm := calculateRawWpm(target, actual, elapsedTime)
+
+	return wpm * accuracy
 }
