@@ -20,8 +20,8 @@ func main() {
 
 	//TODO: this should be loaded from a config file eventually.
 	generalBackground := lipgloss.Color("#558B6A")
-	errorBackground := lipgloss.Color("#FFFFFF")
-	cursorColor := lipgloss.Color("#FAFA00")
+	errorBackground := lipgloss.Color("#ED6B86")
+	cursorColor := lipgloss.Color("#D58936")
 	untypedTextColor := lipgloss.Color("#F7B2B7")
 	correctTextColor := lipgloss.Color("#DE639A")
 	errorTextColor := lipgloss.Color("#7F2982")
