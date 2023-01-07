@@ -123,9 +123,14 @@ func renderTechnique_errorPriority(model TypingView, i int) string {
 			return model.style.phraseStyle.Render(string(model.phrase[i]))
 		}
 
+
 	// cursor position - apply cursor style.
 	case i == len(model.userInput):
-		return model.style.cursorStyle.Render(string(model.phrase[i]))
+        if string(model.phrase[i]) == " " {
+            return model.style.cursorStyle.Render("█")
+        } else{
+            return model.style.cursorStyle.Render(string(model.phrase[i]))
+        }
 
 	// input too long, always error
 	case i > len(model.phrase)-1:
